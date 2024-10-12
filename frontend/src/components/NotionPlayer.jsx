@@ -68,6 +68,12 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
     //agregar estado vacio (momentaneamente)
     const [active, setActive] = useState(false)
 
+    //agregar funcionalidad para dragStart
+    const handleDragStart = (e, card) => {
+        //aqui se puede guardar todo lo necesario en dataTransfer
+        e.dataTransfer.setData("cardId", card.id)
+    }
+
     //filtrar player cards
     const filteredCards = cards.filter((c) => {
         // console.log(`Comparando: team_id = ${c.team_id}, column = ${column}`);
@@ -87,7 +93,9 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
                 {/* aqui pintare la carta de los jugadores */}
                 {filteredCards.map((card) => {
                     /* ...c es una propagacion es un equivalente a agregar n numero de parametros */
-                    return <Card key={card.id} {...card} />
+                    return <Card key={card.id} {...card} 
+                    handleDragStart={handleDragStart}
+                    />
                 })}
                 <DropIndicator beforeId="-1" column={column}/>
 
@@ -98,19 +106,22 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
 }
 
 //Componente Card
-const Card = ({id, team_id, name, age, position}) => {
+const Card = ({id, team_id, name, age, position, handleDragStart}) => {
     return <>
         <DropIndicator beforeId={id} column={team_id} />
         {/* cursor grab cambia el cursor a manita, cursor grabbing cambia el cursor a manita agarrando */}
         {/* draggable es una propiedad nativa de html */}
-        <div 
+        <motion.div 
+            layout
+            layoutId={id}
             className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
             draggable="true"
+            onDragStart={(e) => handleDragStart(e,{ id, name, age, position, team_id})}
         >
             <p className="text-sm text-neutral-100">
                 {name}
             </p>
-        </div>
+        </motion.div>
     </>
 }
 
@@ -131,8 +142,27 @@ const DropIndicator = ({ beforeId, column}) => {
 const BurnBarrel = ({ setCards }) => {
     const [active, setActive] = useState(false) //este estado es el que hara cambiar la animacion, icono y color
 
+    const handleDragOver = (e) => {
+        e.preventDefault()
+        setActive(true)
+    }
+
+    const handleDragLeave = () => {
+        setActive(false)
+    }
+
+    const handleDragEnd = (e) => {
+        //aqui hare el fetch/axios para eliminar el jugador
+        const cardId =e.dataTransfer.getData("cardId")
+        setActive(false)
+        console.log("deleting" + cardId)
+    }
+
     return (
         <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDragEnd}
             className={`mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl ${
                 active
                 ? "border-red-800 bg-red-800/20 text-red-500"
@@ -158,7 +188,7 @@ const AddCard = ({column, setCards}) => {
     return (
         <>
             {adding ? (
-                <form className="p-1 bg-violet-200/20" onSubmit={handleSubmit}>
+                <motion.form layout className="p-1 bg-violet-200/20" onSubmit={handleSubmit}>
                     <input type="text" placeholder="name" required
                     className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"/>
                     <input type="number" placeholder="age" required
@@ -182,15 +212,16 @@ const AddCard = ({column, setCards}) => {
                             <ImMagicWand  />
                         </button>
                     </div>
-                </form>
+                </motion.form>
             ) : 
-            <button
+            <motion.button 
+                layout
                 onClick = {() => setAdding(true)}
                 className = "flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
             >
                 <span>Add Player</span>
                 <FaPlus/><ImMagicWand  />
-            </button> }
+            </motion.button> }
         </>
     )
 }
