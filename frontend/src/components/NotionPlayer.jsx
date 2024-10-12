@@ -66,21 +66,37 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
     const filteredCards = cards.filter((c) => {
         // console.log(`Comparando: team_id = ${c.team_id}, column = ${column}`);
         // por alguna razon al regresar el elemento no funcionaba hasta que hice un cast a column por numero
-        return c.team_id === Number(column)
+        //agrego la condicionante para igualar el elemento en los casos de team_id=null
+        return (c.team_id === Number(column)) || (c.team_id === null && Number(column) === 0)
     })
 
     return (
         <div className="w-56 shrink-0 border-solid border-2 border-indigo-600 p-1">
             <div className="mb-3 flex items-center justify-between">
                 <h3 className={ `font-medium ${headingColor}`}>{title}</h3>
-                <span className="rounded text-sm text-neutral-400">Team Members: {filteredCards.length}</span>
+                <span className="rounded text-sm text-neutral-400"><small>players number: </small>{filteredCards.length}</span>
             </div>
             {/* div para cards de jugadores */}
             <div className={`h-full w-full transition-colors ${active  ? "bg-neutral-800/50" : "bg-neutral-800/0"}`}>
-                
+                {/* aqui pintare la carta de los jugadores */}
+                {filteredCards.map((card) => {
+                    /* ...c es una propagacion es un equivalente a agregar n numero de parametros */
+                    return <Card key={card.id} {...card} />
+                })}
             </div>
         </div>
     )
+}
+
+//Componente Card
+const Card = ({id, team_id, name, age, position}) => {
+    return <>
+        <div>
+            <p className="text-sm text-neutral-100">
+                {name}
+            </p>
+        </div>
+    </>
 }
 
 //obtengo cards de jugadores (TEMPORALMENTE SIN AXIOS/FETCH)
@@ -126,7 +142,7 @@ const DEFAULT_CARDS = [
         "name": "Cho Chang",
         "age": 16,
         "position": "Chaser",
-        "team_id": null
+        "team_id": 3
     },
     {
         "id": 7,
