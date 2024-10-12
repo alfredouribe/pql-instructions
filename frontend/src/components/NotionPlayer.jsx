@@ -15,6 +15,9 @@ const Board = () => {
     //genero un estado para cartas
     const [cards, setCards] = useState(DEFAULT_CARDS);
 
+    //aqui hare la consulta con axios/fetch para mandar a llamar las cards
+    //para eso debo crear otro estado y defaultcards debe ser reemplazado primero por []
+    //const [cards, setCards] = useState([]);
     return (
         <div className="flex h-full w-full gap-3 overflow-scroll p-12">
             <Column
@@ -70,8 +73,116 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
 
     //agregar funcionalidad para dragStart
     const handleDragStart = (e, card) => {
+        console.log(card.name)
         //aqui se puede guardar todo lo necesario en dataTransfer
         e.dataTransfer.setData("cardId", card.id)
+        e.dataTransfer.setData("name", card.name)
+        e.dataTransfer.setData("position", card.position)
+        e.dataTransfer.setData("age", card.age)
+        e.dataTransfer.setData("cardData", JSON.stringify(card));
+    }
+
+    const handleDragOver = (e) => {
+        e.preventDefault()
+        highlightIndicator(e)
+        setActive(true)
+    }
+
+    const highlightIndicator = (e) => {
+        const indicators = getIndicators()
+        clearHighlights(indicators)
+        const el = getNearestIndicator(e, indicators)
+
+        el.element.style.opacity = "1"
+    }
+
+    const clearHighlights = (els) => {
+        const indicators = els || getIndicators()
+
+        indicators.forEach((i) => {
+            i.style.opacity = "0"
+        })
+    }
+
+    const getNearestIndicator = (e, indicators) => {
+        const DISTANCE_OFFSET = 50
+
+        const el = indicators.reduce(
+            (closest, child) => {
+                const box = child.getBoundingClientRect()
+                const offset = e.clientY - (box.top + DISTANCE_OFFSET)
+
+                if(offset < 0 && offset > closest.offset){
+                    return {offset: offset, element: child}
+                }else{
+                    return closest
+                }
+            },{
+                offset: Number.NEGATIVE_INFINITY,
+                element: indicators[indicators.length - 1]
+            }
+        )
+
+        return el
+    }
+
+    const getIndicators = () => {
+        return Array.from(document.querySelectorAll(`[data-column="${column}"]`))
+    }
+
+    const handleDragLeave = () => {
+        setActive(false)
+        clearHighlights()
+    }
+
+    const handleDragEnd = (e) => {
+        e.preventDefault()
+        setActive(false)
+        clearHighlights()
+
+        const cardId = e.dataTransfer.getData("cardId")
+
+        const cardData = JSON.parse(e.dataTransfer.getData("cardData"));
+        console.log(cardData)
+
+        const indicators = getIndicators()
+
+        const {element} = getNearestIndicator(e, indicators)
+
+        const before = element.dataset.before || "-1"
+
+        if(before !== cardId){
+            let copy = [...cards]
+            let cardToTransferIndex = copy.findIndex((c) => c.id === Number(cardId))
+            let cardToTransfer = copy.find((c) => c.id === cardId)
+            cardToTransfer = cardData
+            copy.splice(cardToTransferIndex, 1);
+
+            if(before === "-1"){
+                copy.push({ ...cardToTransfer, team_id: Number(column) })
+            }else{
+                const insertAtIndex = copy.findIndex((el) => el.id === Number(before))
+                if (insertAtIndex === -1) return
+
+                copy.splice(insertAtIndex, 0, { ...cardToTransfer, team_id: Number(column) })
+            }
+            
+            //const moveToBack = before === "-1"
+
+            // if(moveToBack){
+            //     copy.push(cardToTransfer)
+            // }else{
+            //     const insertAtIndex = copy.findIndex((el) => el.id === before)
+            //     if(insertAtIndex === undefined) return;
+
+            //     copy.splice(insertAtIndex, 0, cardToTransfer)
+            // }
+
+            setCards(copy)
+            //aqui debo actualizar el nuevo equipo del jugador
+        }
+
+        
     }
 
     //filtrar player cards
@@ -83,13 +194,17 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
     })
 
     return (
-        <div className="w-56 shrink-0 border-solid border-2 border-indigo-600 p-1">
+        <div className="w-56 shrink-0 border-solid border-2 border-indigo-600 p-1" key={column}>
             <div className="mb-3 flex items-center justify-between">
                 <h3 className={ `font-medium ${headingColor}`}>{title}</h3>
                 <span className="rounded text-sm text-neutral-400"><small>players number: </small>{filteredCards.length}</span>
             </div>
             {/* div para cards de jugadores */}
-            <div className={`h-full w-full transition-colors ${active  ? "bg-neutral-800/50" : "bg-neutral-800/0"}`}>
+            <div 
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDragEnd}
+                className={`h-full w-full transition-colors ${active  ? "bg-neutral-800/50" : "bg-neutral-800/0"}`}>
                 {/* aqui pintare la carta de los jugadores */}
                 {filteredCards.map((card) => {
                     /* ...c es una propagacion es un equivalente a agregar n numero de parametros */
@@ -108,7 +223,7 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
 //Componente Card
 const Card = ({id, team_id, name, age, position, handleDragStart}) => {
     return <>
-        <DropIndicator beforeId={id} column={team_id} />
+        <DropIndicator key={team_id} beforeId={id} column={team_id}/>
         {/* cursor grab cambia el cursor a manita, cursor grabbing cambia el cursor a manita agarrando */}
         {/* draggable es una propiedad nativa de html */}
         <motion.div 
