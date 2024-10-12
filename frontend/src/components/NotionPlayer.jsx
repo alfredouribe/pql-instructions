@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { FaFire, FaTrash } from "react-icons/fa";
+import { GiLunarWand } from "react-icons/gi";
 
 export const NotionPlayer = () => {
     return <div className="h-screen w-full bg-neutral-900 text-neutral-50">
@@ -53,6 +56,8 @@ const Board = () => {
                 setCards= {setCards}
             />
 
+            <BurnBarrel setCards={setCards} />
+
         </div>
     )
 }
@@ -83,6 +88,7 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
                     /* ...c es una propagacion es un equivalente a agregar n numero de parametros */
                     return <Card key={card.id} {...card} />
                 })}
+                <DropIndicator beforeId="-1" column={column}/>
             </div>
         </div>
     )
@@ -91,12 +97,48 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
 //Componente Card
 const Card = ({id, team_id, name, age, position}) => {
     return <>
-        <div>
+        <DropIndicator beforeId={id} column={team_id} />
+        {/* cursor grab cambia el cursor a manita, cursor grabbing cambia el cursor a manita agarrando */}
+        {/* draggable es una propiedad nativa de html */}
+        <div 
+            className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
+            draggable="true"
+        >
             <p className="text-sm text-neutral-100">
                 {name}
             </p>
         </div>
     </>
+}
+
+//componente drop indicator
+const DropIndicator = ({ beforeId, column}) => {
+    return (
+        <div
+            data-before={beforeId || -1} //id para tarjeta en drag
+            data-column={column} //columna para revisar indicadores a revisar
+            className="my-0.5 h-0.5 w-full bg-violet-400 opacity-0"
+        >
+
+        </div>
+    )
+}
+
+/* componente para eliminar cards */
+const BurnBarrel = ({ setCards }) => {
+    const [active, setActive] = useState(false) //este estado es el que hara cambiar la animacion, icono y color
+
+    return (
+        <div
+            className={`mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl ${
+                active
+                ? "border-red-800 bg-red-800/20 text-red-500"
+                : "border-neutral-500 bg-neutral-500/20 text-neutral-500"
+            }`}
+        >
+            {active ? <FaFire className="animate-bounce"/> : <GiLunarWand />}
+        </div>
+    )
 }
 
 //obtengo cards de jugadores (TEMPORALMENTE SIN AXIOS/FETCH)
