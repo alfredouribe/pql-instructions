@@ -151,6 +151,9 @@ const AddCard = ({column, setCards}) => {
     const handleSubmit = (e) => {
         e.preventDefault()
 
+        const newCard = {
+            //aqui colocare la funcion para agregar nuevo jugador a traves de la api
+        }
     }
     return (
         <>
