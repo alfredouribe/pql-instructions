@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FaFire, FaTrash } from "react-icons/fa";
+import { FaFire, FaPlus, FaTrash  } from "react-icons/fa";
 import { GiLunarWand } from "react-icons/gi";
+import { ImMagicWand } from "react-icons/im";
 
 export const NotionPlayer = () => {
     return <div className="h-screen w-full bg-neutral-900 text-neutral-50">
@@ -89,6 +90,8 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
                     return <Card key={card.id} {...card} />
                 })}
                 <DropIndicator beforeId="-1" column={column}/>
+
+                <AddCard column={column} setCards={setCards} />
             </div>
         </div>
     )
@@ -138,6 +141,54 @@ const BurnBarrel = ({ setCards }) => {
         >
             {active ? <FaFire className="animate-bounce"/> : <GiLunarWand />}
         </div>
+    )
+}
+
+const AddCard = ({column, setCards}) => {
+    const [text, setText] = useState("")
+    const [adding, setAdding] = useState(false)
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+
+    }
+    return (
+        <>
+            {adding ? (
+                <form className="p-1 bg-violet-200/20" onSubmit={handleSubmit}>
+                    <input type="text" placeholder="name" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"/>
+                    <input type="number" placeholder="age" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"/>
+                    <input type="text" placeholder="position" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"/>
+
+                    <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                        <button
+                            onClick={() => setAdding(false)}
+                            className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                        >
+                            Close
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
+                        >
+                            <span>Add</span>
+                            <ImMagicWand  />
+                        </button>
+                    </div>
+                </form>
+            ) : 
+            <button
+                onClick = {() => setAdding(true)}
+                className = "flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+            >
+                <span>Add Player</span>
+                <FaPlus/><ImMagicWand  />
+            </button> }
+        </>
     )
 }
 
