@@ -9,13 +9,21 @@ export const NotionPlayer = () => {
 //genero un componente para un tablero
 const Board = () => {
     //genero un estado para cartas
-    const [cards, setCards] = useState([]);
+    const [cards, setCards] = useState(DEFAULT_CARDS);
 
     return (
         <div className="flex h-full w-full gap-3 overflow-scroll p-12">
             <Column
+                title = "No Team"
+                column = "0"
+                headingColor = "text-gray-500 "
+                cards = {cards}
+                setCards= {setCards}
+            />
+
+            <Column
                 title = "Team 1"
-                column = "team1"
+                column = "1"
                 headingColor = "text-red-500"
                 cards = {cards}
                 setCards= {setCards}
@@ -23,7 +31,7 @@ const Board = () => {
 
             <Column
                 title = "Team 2"
-                column = "team1"
+                column = "2"
                 headingColor = "text-green-500"
                 cards = {cards}
                 setCards= {setCards}
@@ -31,7 +39,7 @@ const Board = () => {
 
             <Column
                 title = "Team 3"
-                column = "team1"
+                column = "3"
                 headingColor = "text-yellow-500"
                 cards = {cards}
                 setCards= {setCards}
@@ -39,23 +47,99 @@ const Board = () => {
 
             <Column
                 title = "Team 4"
-                column = "team1"
-                headingColor = "text-blue-500"
+                column = "4"
+                headingColor = "text-blue-500 "
                 cards = {cards}
                 setCards= {setCards}
             />
+
         </div>
     )
 }
 
 //genero un componente para columna que representara un equipo
 const Column = ({ title, headingColor, column, cards, setCards}) => {
+    //agregar estado vacio (momentaneamente)
+    const [active, setActive] = useState(false)
+
+    //filtrar player cards
+    const filteredCards = cards.filter((c) => {
+        // console.log(`Comparando: team_id = ${c.team_id}, column = ${column}`);
+        // por alguna razon al regresar el elemento no funcionaba hasta que hice un cast a column por numero
+        return c.team_id === Number(column)
+    })
+
     return (
-        <div className="w-56 shrink-0">
+        <div className="w-56 shrink-0 border-solid border-2 border-indigo-600 p-1">
             <div className="mb-3 flex items-center justify-between">
                 <h3 className={ `font-medium ${headingColor}`}>{title}</h3>
-                <span className="rounded text-sm text-neutral-400">{cards.length}</span>
+                <span className="rounded text-sm text-neutral-400">Team Members: {filteredCards.length}</span>
+            </div>
+            {/* div para cards de jugadores */}
+            <div className={`h-full w-full transition-colors ${active  ? "bg-neutral-800/50" : "bg-neutral-800/0"}`}>
+                
             </div>
         </div>
     )
 }
+
+//obtengo cards de jugadores (TEMPORALMENTE SIN AXIOS/FETCH)
+
+const DEFAULT_CARDS = [
+    {
+        "id": 1,
+        "name": "Harry Potter",
+        "age": 11,
+        "position": "Seeker",
+        "team_id": 1
+    },
+    {
+        "id": 2,
+        "name": "Hermione Granger",
+        "age": 11,
+        "position": "Chaser",
+        "team_id": 1
+    },
+    {
+        "id": 3,
+        "name": "Ron Weasley",
+        "age": 11,
+        "position": "Keeper",
+        "team_id": 1
+    },
+    {
+        "id": 4,
+        "name": "Draco Malfoy",
+        "age": 11,
+        "position": "Chaser",
+        "team_id": null
+    },
+    {
+        "id": 5,
+        "name": "Cedric Diggory",
+        "age": 17,
+        "position": "Seeker",
+        "team_id": null
+    },
+    {
+        "id": 6,
+        "name": "Cho Chang",
+        "age": 16,
+        "position": "Chaser",
+        "team_id": null
+    },
+    {
+        "id": 7,
+        "name": "Luna Lovegood",
+        "age": 14,
+        "position": "Chaser",
+        "team_id": null
+    },
+    {
+        "id": 8,
+        "name": "Ginny Weasley",
+        "age": 14,
+        "position": "Chaser",
+        "team_id": null
+    },
+]
