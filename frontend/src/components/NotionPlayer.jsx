@@ -4,7 +4,7 @@ import { FaFire, FaPlus, FaTrash  } from "react-icons/fa";
 import { GiLunarWand } from "react-icons/gi";
 import { ImMagicWand } from "react-icons/im";
 import axios from "axios";
-import { TEAM_COLOR } from "../constants";
+import { SPECIAL_ABILITIES, TEAM_COLOR } from "../constants";
 
 export const NotionPlayer = () => {
     return <div className="h-screen w-full bg-neutral-900 text-neutral-50"
@@ -222,8 +222,8 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
     })
     
     return (
-        <div className="w-56 shrink-0 border-solid border-2 border-indigo-600 p-1" key={column}>
-            <div className="mb-3 grid flex items-center justify-between bg-slate-100 bg-opacity-25 h-32">
+        <div className="w-56 shrink-0 border-solid border-t-2 border-indigo-600 p-1" key={column}>
+            <div className="mb-3 grid flex items-center justify-between bg-gray-800 bg-opacity-70 h-32">
                 <h3 className={ `font-medium ${TEAM_COLOR[title] ?? 'textg-white'}`}>{title}</h3>
                 <span className="rounded text-sm text-neutral-400"><small>Number of players: </small>{filteredCards.length}</span>
                 <span>{slogan}</span>
@@ -233,7 +233,7 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDragEnd}
-                className={`h-full overflow-y-scroll w-full transition-colors  ${active  ? "bg-neutral-800/50" : "bg-neutral-800/0"}`}>
+                className={`h-full overflow-y-scroll w-full transition-colors p-1  ${active  ? "bg-neutral-800/50" : "bg-gray-800 bg-opacity-70"}`}>
                 {/* aqui pintare la carta de los jugadores */}
                 {filteredCards.map((card) => {
                     /* ...c es una propagacion es un equivalente a agregar n numero de parametros */
@@ -251,6 +251,10 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
 
 //Componente Card
 const Card = ({id, team_id, name, age, position, handleDragStart}) => {
+    const getSpecialAbility = (position, id) => {
+        const abilityIndex = id % 2
+        return SPECIAL_ABILITIES[position][abilityIndex]
+    }
     return <>
         <DropIndicator key={team_id} beforeId={id} column={team_id}/>
         {/* cursor grab cambia el cursor a manita, cursor grabbing cambia el cursor a manita agarrando */}
@@ -258,7 +262,7 @@ const Card = ({id, team_id, name, age, position, handleDragStart}) => {
         <motion.div 
             layout
             layoutId={id}
-            className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing h-20 grid grid-cols-3 gap-4 content-center"
+            className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing h-25 grid grid-cols-3 gap-4 content-center"
             draggable="true"
             onDragStart={(e) => handleDragStart(e,{ id, name, age, position, team_id})}
         >
@@ -275,6 +279,9 @@ const Card = ({id, team_id, name, age, position, handleDragStart}) => {
                     <b>Position</b> {position}
                 </p>
             </small>
+
+            <span className="text-sm text-neutral-100">Special Ability</span>
+            <span className="text-sm text-neutral-100">{getSpecialAbility(position, id)}</span>
         </motion.div>
     </>
 }
