@@ -1,11 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FaFire, FaPlus, FaTrash  } from "react-icons/fa";
 import { GiLunarWand } from "react-icons/gi";
 import { ImMagicWand } from "react-icons/im";
+import axios from "axios";
+import { TEAM_COLOR } from "../constants";
 
 export const NotionPlayer = () => {
-    return <div className="h-screen w-full bg-neutral-900 text-neutral-50">
+    return <div className="h-screen w-full bg-neutral-900 text-neutral-50"
+        style={{
+            backgroundImage: `url('https://static1.srcdn.com/wordpress/wp-content/uploads/2024/09/quidditch-champions-world-cup-stadium-crowd.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            position: 'absolute',
+            zIndex: -1
+        }}>
         <Board />
     </div>;
 }
@@ -13,53 +23,71 @@ export const NotionPlayer = () => {
 //genero un componente para un tablero
 const Board = () => {
     //genero un estado para cartas
-    const [cards, setCards] = useState(DEFAULT_CARDS);
-
+    //const [cards, setCards] = useState([])
+    const [cards, setCards] = useState([]);
+    const [teams, setTeams] = useState([])
     //aqui hare la consulta con axios/fetch para mandar a llamar las cards
     //para eso debo crear otro estado y defaultcards debe ser reemplazado primero por []
-    //const [cards, setCards] = useState([]);
+    //const [cards, setCards] = useState([]); DEFAULT_CARDS
+
+    useEffect(()=> {
+        const fetchCards = async() => {
+            try {
+                const response = await axios.get('http://localhost:3001/api/players/available')
+                setCards(response.data)
+                
+            }catch(error){
+                console.log(error)
+            }
+        }
+
+        fetchCards()
+    }, [])
+
+
+    useEffect(() => {
+        const fetchTeams = async() => {
+            try {
+                const response = await axios.get('http://localhost:3001/api/teams')
+                setTeams(response.data)
+            }catch(error){
+                console.log(error)
+            }
+        }
+
+        fetchTeams()
+    }, [])
+
+
+    
+
     return (
         <div className="flex h-full w-full gap-3 overflow-scroll p-12">
+            
             <Column
-                title = "No Team"
+                title = "Available"
                 column = "0"
-                headingColor = "text-gray-500 "
+                headingColor = "text-white-500 "
                 cards = {cards}
                 setCards= {setCards}
+                slogan = "I am ready to play"
             />
 
-            <Column
-                title = "Team 1"
-                column = "1"
-                headingColor = "text-red-500"
-                cards = {cards}
-                setCards= {setCards}
-            />
+            {teams.map((team) => {
+                return(
+                    <Column
+                        title = {team.name}
+                        column = {team.id}
+                        headingColor = "text-white-500 "
+                        cards = {cards}
+                        setCards= {setCards}
+                        slogan = {team.slogan}
+                    />
+                )
+                
+            })}
 
-            <Column
-                title = "Team 2"
-                column = "2"
-                headingColor = "text-green-500"
-                cards = {cards}
-                setCards= {setCards}
-            />
-
-            <Column
-                title = "Team 3"
-                column = "3"
-                headingColor = "text-yellow-500"
-                cards = {cards}
-                setCards= {setCards}
-            />
-
-            <Column
-                title = "Team 4"
-                column = "4"
-                headingColor = "text-blue-500 "
-                cards = {cards}
-                setCards= {setCards}
-            />
-
+            
             <BurnBarrel setCards={setCards} />
 
         </div>
@@ -67,7 +95,7 @@ const Board = () => {
 }
 
 //genero un componente para columna que representara un equipo
-const Column = ({ title, headingColor, column, cards, setCards}) => {
+const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
     //agregar estado vacio (momentaneamente)
     const [active, setActive] = useState(false)
 
@@ -80,6 +108,8 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
         e.dataTransfer.setData("position", card.position)
         e.dataTransfer.setData("age", card.age)
         e.dataTransfer.setData("cardData", JSON.stringify(card));
+        console.log(card)
+        console.log(e.dataTransfer.getData("cardData"))
     }
 
     const handleDragOver = (e) => {
@@ -141,10 +171,8 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
         clearHighlights()
 
         const cardId = e.dataTransfer.getData("cardId")
-
         const cardData = JSON.parse(e.dataTransfer.getData("cardData"));
-        console.log(cardData)
-
+        // console.log(JSON.parse(cardData))
         const indicators = getIndicators()
 
         const {element} = getNearestIndicator(e, indicators)
@@ -192,19 +220,20 @@ const Column = ({ title, headingColor, column, cards, setCards}) => {
         //agrego la condicionante para igualar el elemento en los casos de team_id=null
         return (c.team_id === Number(column)) || (c.team_id === null && Number(column) === 0)
     })
-
+    
     return (
         <div className="w-56 shrink-0 border-solid border-2 border-indigo-600 p-1" key={column}>
-            <div className="mb-3 flex items-center justify-between">
-                <h3 className={ `font-medium ${headingColor}`}>{title}</h3>
-                <span className="rounded text-sm text-neutral-400"><small>players number: </small>{filteredCards.length}</span>
+            <div className="mb-3 grid flex items-center justify-between bg-slate-100 bg-opacity-25 h-32">
+                <h3 className={ `font-medium ${TEAM_COLOR[title] ?? 'textg-white'}`}>{title}</h3>
+                <span className="rounded text-sm text-neutral-400"><small>Number of players: </small>{filteredCards.length}</span>
+                <span>{slogan}</span>
             </div>
             {/* div para cards de jugadores */}
             <div 
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDragEnd}
-                className={`h-full w-full transition-colors ${active  ? "bg-neutral-800/50" : "bg-neutral-800/0"}`}>
+                className={`h-full overflow-y-scroll w-full transition-colors  ${active  ? "bg-neutral-800/50" : "bg-neutral-800/0"}`}>
                 {/* aqui pintare la carta de los jugadores */}
                 {filteredCards.map((card) => {
                     /* ...c es una propagacion es un equivalente a agregar n numero de parametros */
@@ -229,13 +258,23 @@ const Card = ({id, team_id, name, age, position, handleDragStart}) => {
         <motion.div 
             layout
             layoutId={id}
-            className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
+            className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing h-20 grid grid-cols-3 gap-4 content-center"
             draggable="true"
             onDragStart={(e) => handleDragStart(e,{ id, name, age, position, team_id})}
         >
+            <img src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png" width="128" alt="" />
             <p className="text-sm text-neutral-100">
-                {name}
+                <b>{name}</b>
+                <br />
+                <span style={{fontSize: '10px'}}>Age {age}</span>
+                
             </p>
+            
+            <small className="text-sm text-neutral-100">
+                <p>
+                    <b>Position</b> {position}
+                </p>
+            </small>
         </motion.div>
     </>
 }
@@ -266,11 +305,24 @@ const BurnBarrel = ({ setCards }) => {
         setActive(false)
     }
 
-    const handleDragEnd = (e) => {
+    const handleDragEnd = async (e) => {
         //aqui hare el fetch/axios para eliminar el jugador
         const cardId =e.dataTransfer.getData("cardId")
-        setActive(false)
+        
         console.log("deleting" + cardId)
+        //verificar que exista un id en el evento
+        if(cardId){
+            try{
+                await axios.delete(`http://localhost:3001/api/players/${cardId}`)
+                setCards(prevCards => prevCards.filter(card => card.id !== parseInt(cardId)));
+            }catch(error){
+                console.log(error)
+            }
+        }else{
+            console.log("Error")
+        }
+
+        setActive(false)
     }
 
     return (
