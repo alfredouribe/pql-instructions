@@ -87,9 +87,10 @@ const Board = () => {
                 
             })}
 
-            
-            <BurnBarrel setCards={setCards} />
-
+            <div>
+                <BurnBarrel setCards={setCards} />
+                <AddTeam setCards={setCards} cards={cards}/>
+            </div>
         </div>
     )
 }
@@ -226,7 +227,7 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
             <div className="mb-3 grid flex items-center justify-between bg-gray-800 bg-opacity-70 h-32">
                 <h3 className={ `font-medium ${TEAM_COLOR[title] ?? 'textg-white'}`}>{title}</h3>
                 <span className="rounded text-sm text-neutral-400"><small>Number of players: </small>{filteredCards.length}</span>
-                <span>{slogan}</span>
+                <span style={{fontSize: '10px'}}>{slogan}</span>
             </div>
             {/* div para cards de jugadores */}
             <div 
@@ -337,13 +338,18 @@ const BurnBarrel = ({ setCards }) => {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDragEnd}
-            className={`mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl ${
+            className={`content-center mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl ${
                 active
-                ? "border-red-800 bg-red-800/20 text-red-500"
+                ? "border-green-800 bg-green-800/20 text-green-500"
                 : "border-neutral-500 bg-neutral-500/20 text-neutral-500"
             }`}
         >
-            {active ? <FaFire className="animate-bounce"/> : <GiLunarWand />}
+            {active ? (<FaFire className="animate-bounce"/>) : (
+                <div className="flex flex-col items-center justify-center">
+                <GiLunarWand />
+                <p className="mt-2 text-xl">Avada Kedabra</p>
+                </div>
+            )}
         </div>
     )
 }
@@ -400,6 +406,109 @@ const AddCard = ({column, setCards}) => {
     )
 }
 
+const AddTeam = ({setTeams, setCards, cards}) => {
+    const [activeTeamForm, setTeamForm] = useState(false)
+
+    const [name, setName] = useState("") //esto servira para capturar el nombre del equipo
+    const [slogan, setSlogan] = useState("") //esto servira para capturar el slogan del equipo
+    const [selectedCardIds, setSelectedCardIds] = useState("");
+
+    const filteredCards = cards.filter((c) => {
+        // solo cards que no tienen equipo
+        return c.team_id === null
+    })
+
+    const onSubmit = async (e) => {
+        e.preventDefault()
+
+        const newTeam = {
+            //aqui colocare la funcion para agregar nuevo jugador a traves de la api
+            name,
+            slogan,
+            players: selectedCardIds //jugadores
+        }
+
+        try{
+            const response = await axios.post("http://localhost:3001/api/teams", newTeam)
+
+            console.log(response.data)
+
+            setTeams((prevTeams) => [...prevTeams, newTeam]);
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+
+    const handleCardSelection = (e) => {
+        const options = e.target.options;
+        const selectedValues = [];
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].selected) {
+                selectedValues.push(Number(options[i].value));
+            }
+        }
+        setSelectedCardIds(selectedValues);
+    };
+
+    return (
+        <div className="content-center mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl border-neutral-500 bg-neutral-500/20 text-neutral-500 hover:text-gray-100">
+            <pre>{JSON.stringify(setCards, 0, 2)}</pre>
+            {activeTeamForm ? (
+                <motion.form layout className="p-1 bg-violet-200/20" onSubmit={onSubmit}>
+                    <input type="text" placeholder="name of the team" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setName(e.target.value)}/>
+
+                    <input type="text" placeholder="slogan" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setSlogan(e.target.value)}/>
+
+                    <select
+                        multiple={true}
+                        value={selectedCardIds}
+                        onChange={handleCardSelection}
+                        className="w-full rounded border border-gray-400 bg-gray-800 p-3 text-sm text-gray-500 placeholder-gray-300 focus:outline-0 mb-1"
+                    >
+                        {filteredCards.map((card) => (
+                            <option key={card.id} value={card.id}>
+                                {card.name} 
+                            </option>
+                        ))}
+                    </select>
+
+                    <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                        <button
+                            onClick={() => setTeamForm(false)}
+                            className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                        >
+                            Close
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
+                        >
+                            <span>Add</span>
+                            <ImMagicWand  />
+                        </button>
+                    </div>
+                </motion.form>
+            ) : (
+
+                <div
+                    layout
+                    onClick = {() => setTeamForm(true)}
+                    className="flex flex-col items-center justify-center cursor-pointer"
+                >
+                    <ImMagicWand  />
+                    <p className="mt-2 text-xl cursor-pointer">Add Team</p>
+                </div>
+
+            )}
+        </div>
+    )
+}
 //obtengo cards de jugadores (TEMPORALMENTE SIN AXIOS/FETCH)
 
 const DEFAULT_CARDS = [
