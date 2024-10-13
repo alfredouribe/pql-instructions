@@ -65,12 +65,13 @@ const Board = () => {
         <div className="flex h-full w-full gap-3 overflow-scroll p-12">
             
             <Column
-                title = "Available"
+                title = "The common room"
                 column = "0"
                 headingColor = "text-white-500 "
                 cards = {cards}
                 setCards= {setCards}
                 slogan = "I am ready to play"
+                edit = {false}
             />
 
             {teams.map((team) => {
@@ -82,6 +83,7 @@ const Board = () => {
                         cards = {cards}
                         setCards= {setCards}
                         slogan = {team.slogan}
+                        edit = {true}
                     />
                 )
                 
@@ -96,7 +98,7 @@ const Board = () => {
 }
 
 //genero un componente para columna que representara un equipo
-const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
+const Column = ({ title, headingColor, column, cards, setCards, slogan, edit}) => {
     //agregar estado vacio (momentaneamente)
     const [active, setActive] = useState(false)
     const [activeEdit, setActiveEdit] = useState(false)
@@ -232,13 +234,12 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
     const onSubmitEdit = async (e) => {
         e.preventDefault()
         const editTeam = {
-            name: nameEdit,
-            slogan: sloganEdit
+            name: nameEdit ?? title,
+            slogan: sloganEdit ?? slogan
         }
 
         try{
             const response = axios.put(`http://localhost:3001/api/teams/${column}`, editTeam)
-
             // console.log(response.data)
             setActiveEdit(false)
         }catch(error){
@@ -260,60 +261,75 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
                 <h3 className={ `font-medium ${TEAM_COLOR[title] ?? 'textg-white'}`}>{title}</h3>
                 <span className="rounded text-sm text-neutral-400"><small>Number of wizards: </small>{filteredCards.length}</span>
                 <span style={{fontSize: '10px'}}>{slogan}</span>
-
-                <div
-                    layout
-                    className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
-                    onClick={deleteTeam}
-                >
-                    <FaTrash  />
-                    <span className="mt-2 text-xs cursor-pointer">Depulso Team</span>
-                </div>
-
                 {
-                    activeEdit ? (
-                        <motion.form layout className="p-1 bg-violet-200/20" onSubmit={onSubmitEdit}>
-                            <input type="text" placeholder="name of the team" required
-                            className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
-                            onChange={(e) => setName(e.target.value)}
-                            defaultValue={title}
-                            />
-
-                            <input type="text" placeholder="slogan" required
-                            className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
-                            onChange={(e) => setSlogan(e.target.value)}
-                            defaultValue={slogan}
-                            />
-
-                            <div className="mt-1.5 flex items-center justify-end gap-1.5">
-                                <button
-                                    onClick={() => setActiveEdit(false)}
-                                    className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
-                                >
-                                    Close
-                                </button>
-
-                                <button
-                                    type="submit"
-                                    className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
-                                >
-                                    <span>Flush</span>
-                                    <ImMagicWand  />
-                                </button>
-                            </div>
-                        </motion.form>
-                    ) : (
-                        <motion.button 
-                        layout
-                        onClick = {() => setActiveEdit(true)}
-                        className = "flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
-                    >
+                    edit ? (
+                        <>
                         
-                        <FaUsers  /><ImMagicWand  />
-                        <span>Imperio Team</span>
-                    </motion.button>
+                        
+                            <div
+                                layout
+                                className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                                onClick={deleteTeam}
+                            >
+                                <FaTrash  />
+                                <span className="mt-2 text-xs cursor-pointer">Depulso Team</span>
+                            </div>
+
+                            {
+                                activeEdit ? (
+                                    <motion.form layout className="p-1 bg-violet-200/20" onSubmit={onSubmitEdit}>
+                                        <input type="text" placeholder="name of the team" required
+                                        className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                                        onChange={(e) => setName(e.target.value)}
+                                        defaultValue={title}
+                                        />
+
+                                        <input type="text" placeholder="slogan" required
+                                        className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                                        onChange={(e) => setSlogan(e.target.value)}
+                                        defaultValue={slogan}
+                                        />
+
+                                        <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                                            <button
+                                                onClick={() => setActiveEdit(false)}
+                                                className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                                            >
+                                                Close
+                                            </button>
+
+                                            <button
+                                                type="submit"
+                                                className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
+                                            >
+                                                <span>Flush</span>
+                                                <ImMagicWand  />
+                                            </button>
+                                        </div>
+                                    </motion.form>
+                                ) : (
+                                    <motion.button 
+                                        layout
+                                        onClick = {() => setActiveEdit(true)}
+                                        className = "flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                                    >
+                                        
+                                        <FaUsers  /><ImMagicWand  />
+                                        <span>Imperio Team</span>
+                                    </motion.button>
+                                )
+                            }
+                        
+                        
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50">Immune</div>
+                            <div className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50">Immune</div>
+                        </>
                     )
                 }
+                
             </div>
             {/* div para cards de jugadores */}
             <div 
@@ -326,6 +342,7 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
                     /* ...c es una propagacion es un equivalente a agregar n numero de parametros */
                     return <Card key={card.id} {...card} 
                     handleDragStart={handleDragStart}
+                    setCards={setCards}
                     />
                 })}
                 <DropIndicator beforeId="-1" column={column}/>
@@ -337,11 +354,50 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
 }
 
 //Componente Card
-const Card = ({id, team_id, name, age, position, handleDragStart}) => {
+const Card = ({id, team_id, name, age, position, handleDragStart, setCards}) => {
+    const [activeEditPlayer, setActiveEditPlayer] = useState(false)
+
+    const [nameEdit, setPlayerName] = useState(name)
+    const [ageEdit, setAge] = useState(age)
+    const [positionEdit, setPosition] = useState(position)
+
+    //con esta funcion obtengo una habilidad especial de forma aleatoria
+
+    
+    //como estoy editando libremente la posicion del jugador
+    //el usuario puede colocar cualquier cadena
+    //por lo tanto una cadena aleatoria que no exista en special abilities
+    //genera un error puesto que tenemos un undefined que rompe el sitio
     const getSpecialAbility = (position, id) => {
         const abilityIndex = id % 2
-        return SPECIAL_ABILITIES[position][abilityIndex]
+        if (SPECIAL_ABILITIES[position] && SPECIAL_ABILITIES[position][abilityIndex] !== undefined) {
+            return SPECIAL_ABILITIES[position][abilityIndex];
+        }
+
+        return 'None'
     }
+
+    const onSubmitEdit = async (e) => {
+        e.preventDefault()
+
+        const playerEdit = {
+            name: nameEdit ?? age,
+            age: ageEdit ?? age,
+            position: positionEdit ?? position,
+            team_id
+        }
+
+        try{
+            const response = await axios.put(`http://localhost:3001/api/players/${id}`, playerEdit)
+            setCards((prevCards) => prevCards.filter(card => card.id !== id).concat(response.data));
+        }catch(error){
+            console.log(error)
+        }
+        
+
+        setActiveEditPlayer(false)
+    }
+
     return <>
         <DropIndicator key={team_id} beforeId={id} column={team_id}/>
         {/* cursor grab cambia el cursor a manita, cursor grabbing cambia el cursor a manita agarrando */}
@@ -369,6 +425,50 @@ const Card = ({id, team_id, name, age, position, handleDragStart}) => {
 
             <span className="text-sm text-neutral-100">Special Ability</span>
             <span className="text-sm text-neutral-100">{getSpecialAbility(position, id)}</span>
+            
+            {activeEditPlayer ? (
+                <motion.form layout className="w-full h-full p-1 bg-violet-200/20 flex flex-col justify-between col-span-3" onSubmit={onSubmitEdit}>
+                    <input type="text" placeholder="name" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    defaultValue={name}/>
+
+                    <input type="number" placeholder="age" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setAge(e.target.value)}
+                    defaultValue={age}/>
+
+                    <input type="text" placeholder="position" required
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setPosition(e.target.value)}
+                    defaultValue={position}/>
+
+                    <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                        <button
+                            onClick={() => setActiveEditPlayer(false)}
+                            className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                        >
+                            Close
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
+                        >
+                            <span>Flush</span>
+                            <ImMagicWand  />
+                        </button>
+                    </div>
+                </motion.form>
+            ) : ( 
+                <motion.button 
+                    layout
+                    onClick = {() => setActiveEditPlayer(true)}
+                    className = "flex w-full  gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                >
+                    <span>Imperio<ImMagicWand  /></span>
+                </motion.button>
+            )}
         </motion.div>
     </>
 }
@@ -626,63 +726,4 @@ const AddTeam = ({setTeams, setCards, cards, teams}) => {
         </div>
     )
 }
-//obtengo cards de jugadores (TEMPORALMENTE SIN AXIOS/FETCH)
-
-const DEFAULT_CARDS = [
-    {
-        "id": 1,
-        "name": "Harry Potter",
-        "age": 11,
-        "position": "Seeker",
-        "team_id": 1
-    },
-    {
-        "id": 2,
-        "name": "Hermione Granger",
-        "age": 11,
-        "position": "Chaser",
-        "team_id": 1
-    },
-    {
-        "id": 3,
-        "name": "Ron Weasley",
-        "age": 11,
-        "position": "Keeper",
-        "team_id": 1
-    },
-    {
-        "id": 4,
-        "name": "Draco Malfoy",
-        "age": 11,
-        "position": "Chaser",
-        "team_id": null
-    },
-    {
-        "id": 5,
-        "name": "Cedric Diggory",
-        "age": 17,
-        "position": "Seeker",
-        "team_id": null
-    },
-    {
-        "id": 6,
-        "name": "Cho Chang",
-        "age": 16,
-        "position": "Chaser",
-        "team_id": 3
-    },
-    {
-        "id": 7,
-        "name": "Luna Lovegood",
-        "age": 14,
-        "position": "Chaser",
-        "team_id": null
-    },
-    {
-        "id": 8,
-        "name": "Ginny Weasley",
-        "age": 14,
-        "position": "Chaser",
-        "team_id": null
-    },
-]
+/* elimino las cards de jugadores que estaban en hardcode */
