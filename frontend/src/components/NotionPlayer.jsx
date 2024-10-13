@@ -241,6 +241,7 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan, edit}) =
         try{
             const response = axios.put(`http://localhost:3001/api/teams/${column}`, editTeam)
             // console.log(response.data)
+            window.location.relad()
             setActiveEdit(false)
         }catch(error){
             console.log(error)
