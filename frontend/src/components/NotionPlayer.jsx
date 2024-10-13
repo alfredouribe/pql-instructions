@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FaFire, FaPlus, FaTrash, FaUserTie } from "react-icons/fa";
+import { FaFire, FaPlus, FaTrash, FaUserTie, FaUsers  } from "react-icons/fa";
 import { GiLunarWand } from "react-icons/gi";
 import { ImMagicWand } from "react-icons/im";
 import axios from "axios";
@@ -99,6 +99,10 @@ const Board = () => {
 const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
     //agregar estado vacio (momentaneamente)
     const [active, setActive] = useState(false)
+    const [activeEdit, setActiveEdit] = useState(false)
+
+    const [nameEdit, setName] = useState(title)
+    const [sloganEdit, setSlogan] = useState(slogan)
 
     //agregar funcionalidad para dragStart
     const handleDragStart = (e, card) => {
@@ -225,6 +229,23 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
         }
     }
 
+    const onSubmitEdit = async (e) => {
+        e.preventDefault()
+        const editTeam = {
+            name: nameEdit,
+            slogan: sloganEdit
+        }
+
+        try{
+            const response = axios.put(`http://localhost:3001/api/teams/${column}`, editTeam)
+
+            // console.log(response.data)
+            setActiveEdit(false)
+        }catch(error){
+            console.log(error)
+        }
+    }
+
     //filtrar player cards
     const filteredCards = cards.filter((c) => {
         // console.log(`Comparando: team_id = ${c.team_id}, column = ${column}`);
@@ -237,17 +258,62 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
         <div className="w-56 shrink-0 border-solid border-t-2 border-indigo-600 p-1" key={column}>
             <div className="mb-3 grid flex items-center justify-between bg-gray-800 bg-opacity-70 ">
                 <h3 className={ `font-medium ${TEAM_COLOR[title] ?? 'textg-white'}`}>{title}</h3>
-                <span className="rounded text-sm text-neutral-400"><small>Number of players: </small>{filteredCards.length}</span>
+                <span className="rounded text-sm text-neutral-400"><small>Number of wizards: </small>{filteredCards.length}</span>
                 <span style={{fontSize: '10px'}}>{slogan}</span>
 
                 <div
                     layout
-                    className="flex items-center justify-between cursor-pointer"
+                    className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
                     onClick={deleteTeam}
                 >
                     <FaTrash  />
                     <span className="mt-2 text-xs cursor-pointer">Depulso Team</span>
                 </div>
+
+                {
+                    activeEdit ? (
+                        <motion.form layout className="p-1 bg-violet-200/20" onSubmit={onSubmitEdit}>
+                            <input type="text" placeholder="name of the team" required
+                            className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                            onChange={(e) => setName(e.target.value)}
+                            defaultValue={title}
+                            />
+
+                            <input type="text" placeholder="slogan" required
+                            className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                            onChange={(e) => setSlogan(e.target.value)}
+                            defaultValue={slogan}
+                            />
+
+                            <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                                <button
+                                    onClick={() => setActiveEdit(false)}
+                                    className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                                >
+                                    Close
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
+                                >
+                                    <span>Flush</span>
+                                    <ImMagicWand  />
+                                </button>
+                            </div>
+                        </motion.form>
+                    ) : (
+                        <motion.button 
+                        layout
+                        onClick = {() => setActiveEdit(true)}
+                        className = "flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                    >
+                        
+                        <FaUsers  /><ImMagicWand  />
+                        <span>Imperio Team</span>
+                    </motion.button>
+                    )
+                }
             </div>
             {/* div para cards de jugadores */}
             <div 
@@ -444,7 +510,7 @@ const AddCard = ({column, setCards}) => {
                 onClick = {() => setAdding(true)}
                 className = "flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
             >
-                <span>Accio Player</span>
+                <span>Accio Wizard</span>
                 <FaUserTie /><ImMagicWand  />
             </motion.button> }
         </>
