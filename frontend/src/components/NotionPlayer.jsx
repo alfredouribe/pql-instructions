@@ -217,7 +217,7 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
     const deleteTeam = async () => {
         try{
             //se esperaba que al eliminar un team los jugadores que lo incluyan actualicen automaticamente a team_id=null
-            //podria ser una mejora en el back
+            //podria ser una mejora en el back //aqui se podria agregar un alert confirmation como en todos los delete
             const response = await axios.delete(`http://localhost:3001/api/teams/${column}`)
             window.location.reload()
         }catch(error){
