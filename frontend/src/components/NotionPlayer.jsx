@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FaFire, FaPlus, FaTrash, FaUserTie   } from "react-icons/fa";
+import { FaFire, FaPlus, FaTrash, FaUserTie } from "react-icons/fa";
 import { GiLunarWand } from "react-icons/gi";
 import { ImMagicWand } from "react-icons/im";
 import axios from "axios";
@@ -214,6 +214,17 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
         
     }
 
+    const deleteTeam = async () => {
+        try{
+            //se esperaba que al eliminar un team los jugadores que lo incluyan actualicen automaticamente a team_id=null
+            //podria ser una mejora en el back
+            const response = await axios.delete(`http://localhost:3001/api/teams/${column}`)
+            window.location.reload()
+        }catch(error){
+            console.log(error)
+        }
+    }
+
     //filtrar player cards
     const filteredCards = cards.filter((c) => {
         // console.log(`Comparando: team_id = ${c.team_id}, column = ${column}`);
@@ -224,10 +235,19 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan}) => {
     
     return (
         <div className="w-56 shrink-0 border-solid border-t-2 border-indigo-600 p-1" key={column}>
-            <div className="mb-3 grid flex items-center justify-between bg-gray-800 bg-opacity-70 h-32">
+            <div className="mb-3 grid flex items-center justify-between bg-gray-800 bg-opacity-70 ">
                 <h3 className={ `font-medium ${TEAM_COLOR[title] ?? 'textg-white'}`}>{title}</h3>
                 <span className="rounded text-sm text-neutral-400"><small>Number of players: </small>{filteredCards.length}</span>
                 <span style={{fontSize: '10px'}}>{slogan}</span>
+
+                <div
+                    layout
+                    className="flex items-center justify-between cursor-pointer"
+                    onClick={deleteTeam}
+                >
+                    <FaTrash  />
+                    <span className="mt-2 text-xs cursor-pointer">Depulso Team</span>
+                </div>
             </div>
             {/* div para cards de jugadores */}
             <div 
