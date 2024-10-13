@@ -201,6 +201,7 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan, edit}) =
 
                 copy.splice(insertAtIndex, 0, { ...cardToTransfer, team_id: Number(column) })
             }
+            editPlayerTeam(cardData, column)
             
             //const moveToBack = before === "-1"
 
@@ -215,6 +216,10 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan, edit}) =
 
             setCards(copy)
             //aqui debo actualizar el nuevo equipo del jugador
+
+            /* columna y id para actualizar */
+            
+            
         }
 
         
@@ -243,6 +248,22 @@ const Column = ({ title, headingColor, column, cards, setCards, slogan, edit}) =
             // console.log(response.data)
             window.location.relad()
             setActiveEdit(false)
+        }catch(error){
+            console.log(error)
+        }
+    }
+
+    const editPlayerTeam = async(cardData, column) => {
+        const playerEdit = {
+            name: cardData.name,
+            age: cardData.age,
+            position: cardData.position,
+            team_id: Number(column)
+        }
+
+        try{
+            const response = await axios.put(`http://localhost:3001/api/players/${cardData.id}`, playerEdit)
+            //setCards((prevCards) => prevCards.filter(card => card.id !== id).concat(response.data));
         }catch(error){
             console.log(error)
         }
