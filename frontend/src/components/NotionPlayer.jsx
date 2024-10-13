@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FaFire, FaPlus, FaTrash  } from "react-icons/fa";
+import { FaFire, FaPlus, FaTrash, FaUserTie   } from "react-icons/fa";
 import { GiLunarWand } from "react-icons/gi";
 import { ImMagicWand } from "react-icons/im";
 import axios from "axios";
@@ -33,7 +33,7 @@ const Board = () => {
     useEffect(()=> {
         const fetchCards = async() => {
             try {
-                const response = await axios.get('http://localhost:3001/api/players/available')
+                const response = await axios.get('http://localhost:3001/api/players')
                 setCards(response.data)
                 
             }catch(error){
@@ -89,7 +89,7 @@ const Board = () => {
 
             <div>
                 <BurnBarrel setCards={setCards} />
-                <AddTeam setCards={setCards} cards={cards}/>
+                <AddTeam setTeams={setTeams} setCards={setCards} cards={cards} teams={teams}/>
             </div>
         </div>
     )
@@ -357,12 +357,32 @@ const BurnBarrel = ({ setCards }) => {
 const AddCard = ({column, setCards}) => {
     const [text, setText] = useState("")
     const [adding, setAdding] = useState(false)
+    const [name, setPlayerName] = useState("")
+    const [age, setAge] = useState("")
+    const [position, setPosition] = useState("")
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
 
-        const newCard = {
+        const newPlayer = {
             //aqui colocare la funcion para agregar nuevo jugador a traves de la api
+            name,
+            age,
+            position,
+            team_id: column
+        }
+
+        try{
+            const response = await axios.post("http://localhost:3001/api/players", newPlayer)
+
+            const addedPlayer = response.data
+            setAdding(false)
+            setCards((prevCards) => [...prevCards, addedPlayer]);
+            setPlayerName("")
+            setAge("")
+            setPosition("")
+        }catch(error){
+            console.log(error)
         }
     }
     return (
@@ -370,11 +390,16 @@ const AddCard = ({column, setCards}) => {
             {adding ? (
                 <motion.form layout className="p-1 bg-violet-200/20" onSubmit={handleSubmit}>
                     <input type="text" placeholder="name" required
-                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"/>
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setPlayerName(e.target.value)}/>
+
                     <input type="number" placeholder="age" required
-                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"/>
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setAge(e.target.value)}/>
+
                     <input type="text" placeholder="position" required
-                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"/>
+                    className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0 mb-1"
+                    onChange={(e) => setPosition(e.target.value)}/>
 
                     <div className="mt-1.5 flex items-center justify-end gap-1.5">
                         <button
@@ -388,7 +413,7 @@ const AddCard = ({column, setCards}) => {
                             type="submit"
                             className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
                         >
-                            <span>Add</span>
+                            <span>Flush</span>
                             <ImMagicWand  />
                         </button>
                     </div>
@@ -399,14 +424,14 @@ const AddCard = ({column, setCards}) => {
                 onClick = {() => setAdding(true)}
                 className = "flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
             >
-                <span>Add Player</span>
-                <FaPlus/><ImMagicWand  />
+                <span>Accio Player</span>
+                <FaUserTie /><ImMagicWand  />
             </motion.button> }
         </>
     )
 }
 
-const AddTeam = ({setTeams, setCards, cards}) => {
+const AddTeam = ({setTeams, setCards, cards, teams}) => {
     const [activeTeamForm, setTeamForm] = useState(false)
 
     const [name, setName] = useState("") //esto servira para capturar el nombre del equipo
@@ -431,9 +456,15 @@ const AddTeam = ({setTeams, setCards, cards}) => {
         try{
             const response = await axios.post("http://localhost:3001/api/teams", newTeam)
 
-            console.log(response.data)
-
+            //si obtuviera el ultimo elemento (necesito igualmente el id) podria hacer un push en los cards
+            //de momento hare un refresh
+            window.location.reload()
             setTeams((prevTeams) => [...prevTeams, newTeam]);
+
+
+            setName("");
+            setSlogan("");
+            setSelectedCardIds([]);
 
         }catch(error){
             console.log(error)
@@ -489,7 +520,7 @@ const AddTeam = ({setTeams, setCards, cards}) => {
                             type="submit"
                             className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
                         >
-                            <span>Add</span>
+                            <span>Flush</span>
                             <ImMagicWand  />
                         </button>
                     </div>
@@ -502,7 +533,7 @@ const AddTeam = ({setTeams, setCards, cards}) => {
                     className="flex flex-col items-center justify-center cursor-pointer"
                 >
                     <ImMagicWand  />
-                    <p className="mt-2 text-xl cursor-pointer">Add Team</p>
+                    <p className="mt-2 text-xl cursor-pointer">Accio Team</p>
                 </div>
 
             )}

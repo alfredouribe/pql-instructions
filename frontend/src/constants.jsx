@@ -1,7 +1,7 @@
 export const TEAM_COLOR = {
     Gryffindor: "text-red-500",
     Slytherin: "text-green-500 ",
-    Huffelpuff: "text-yelllow-500",
+    Hufflepuff: "text-yellow-500",
     Ravenclaw: "text-blue-500",
 };
 
